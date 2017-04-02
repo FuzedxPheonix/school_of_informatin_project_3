@@ -14,6 +14,8 @@ import twitter_info # same deal as always...
 import json
 import sqlite3
 
+from collections import Counter
+
 ## Your name:
 ## The names of anyone you worked with on this project:
 
@@ -98,7 +100,7 @@ umich_tweets = get_user_tweets("umich")
 conn = sqlite3.connect('project3_tweets.db')
 cur = conn.cursor()
 cur.execute('DROP TABLE IF EXISTS Tweets')
-table_spec = 'CREATE TABLE IF NOT EXISTS Tweets(tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT ,time_posted TIMESTAMP, retweets INTEGER)'
+table_spec = 'CREATE TABLE IF NOT EXISTS Tweets(tweet_id TEXT PRIMARY KEY, text TEXT, user_id TEXT ,time_posted TIMESTAMP, retweets INTEGER)'
 cur.execute(table_spec)
 
 
@@ -220,6 +222,7 @@ statements = 'SELECT * FROM Tweets Where retweets > 25'
 
 more_than_25_rts = cur.execute(statements).fetchall()
 
+
 # Make a query to select all the descriptions (descriptions only) of the users who have favorited more than 25 tweets. Access all those strings, and save them in a variable called descriptions_fav_users, which should ultimately be a list of strings.
 
 statements = 'SELECT description FROM Users Where num_favs > 25'
@@ -227,11 +230,12 @@ descriptions_fav_users = [x[0] for x in cur.execute(statements).fetchall()]
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 elements in each tuple: the user screenname and the text of the tweet -- for each tweet that has been retweeted more than 50 times. Save the resulting list of tuples in a variable called joined_result.
 
-joined_result = []
+statements = 'SELECT Users.screen_name, Tweets.text FROM Users INNER Join Tweets Where Tweets.retweets > 50'
 
-conn.commit()
 
-conn.close()
+joined_result = cur.execute(statements).fetchall()
+
+
 
 ## Task 4 - Manipulating data with comprehensions & libraries
 
@@ -239,9 +243,16 @@ conn.close()
 
 
 
+description_words = set(items for x in descriptions_fav_users for items in x.split())
+
+
+
 ## Use a Counter in the collections library to find the most common character among all of the descriptions in the descriptions_fav_users list. Save that most common character in a variable called most_common_char. Break any tie alphabetically (but using a Counter will do a lot of work for you...).
 
 
+items = (collections.Counter(items for x in descriptions_fav_users for items in x).most_common(1)[0])
+
+most_common_char = items[0]
 
 ## Putting it all together...
 # Write code to create a dictionary whose keys are Twitter screen names and whose associated values are lists of tweet texts that that user posted. You may need to make additional queries to your database! To do this, you can use, and must use at least one of: the DefaultDict container in the collections library, a dictionary comprehension, list comprehension(s). Y
@@ -249,6 +260,37 @@ conn.close()
 
 
 
+
+first_statement = "SELECT user_id FROM Users "
+
+
+
+twitter_info_diction = dict()
+for x in cur.execute(first_statement).fetchall():
+	temp_val = x[0]
+
+
+
+	second_statement =  "SELECT text From Tweets Where user_id=" + str(temp_val)
+
+	some_list = []
+	for y in cur.execute(second_statement).fetchall():
+		some_list.append(y[0])
+
+
+	if not some_list:
+		pass
+
+	else:
+		twitter_info_diction[temp_val] = some_list
+
+
+
+
+
+conn.commit()
+
+conn.close()
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, but it's a pain). ###
 
 
