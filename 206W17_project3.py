@@ -221,7 +221,7 @@ screen_names = [x[0] for x in cur.execute(statements).fetchall()]
 statements = 'SELECT * FROM Tweets Where retweets > 25'
 
 more_than_25_rts = cur.execute(statements).fetchall()
-
+#We need better test case or new json data
 
 # Make a query to select all the descriptions (descriptions only) of the users who have favorited more than 25 tweets. Access all those strings, and save them in a variable called descriptions_fav_users, which should ultimately be a list of strings.
 
